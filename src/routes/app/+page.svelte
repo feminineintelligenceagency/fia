@@ -7,18 +7,13 @@
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import { toast } from 'svelte-sonner';
 
+	let { data } = $props();
+
 	let btnDisabled = $state(false);
 	let query = $state('titanic');
 	let options = $state<string[]>([]);
 
-	const suggestions = [
-		'titanic',
-		'inception',
-		'the godfather',
-		'interstellar',
-		'fight club',
-		'parasite'
-	];
+	const suggestions = ['titanic', 'inception', 'the godfather', 'interstellar', 'fight club', 'parasite'];
 
 	async function localFindMovieScripts() {
 		btnDisabled = true;
@@ -46,23 +41,17 @@
 
 <div class="mx-auto flex h-full w-full max-w-5xl flex-col items-center justify-center">
 	<div class="relative w-full max-w-3xl">
-		<div
-			class="absolute -inset-px rounded-3xl bg-linear-to-r from-pink-400 via-purple-400 to-blue-400 opacity-80 blur-[2px]"
-		></div>
+		<div class="absolute -inset-[1px] rounded-3xl bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-80 blur-[2px]"></div>
 
-		<div
-			class="relative rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur"
-		>
+		<div class="relative rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur">
 			<div class="flex items-center gap-3">
-				<span
-					class="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white"
-				>
+				<span class="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">
 					Digital Think Tank
 				</span>
 				<span class="text-xs text-slate-500">Script Search + Analysis</span>
 			</div>
 
-			<h1 class="mt-4 text-4xl leading-tight font-extrabold text-slate-900">
+			<h1 class="mt-4 text-4xl font-extrabold leading-tight text-slate-900">
 				Find a movie script, then<br />
 				analyze it in seconds.
 			</h1>
@@ -86,9 +75,9 @@
 				<InputGroup.Addon align="block-end">
 					<InputGroup.Button
 						variant="default"
-						class="mr-2 mb-2 ml-auto cursor-pointer rounded-full bg-linear-to-r
-            from-pink-500 via-purple-500 to-blue-500 p-3
-            text-white shadow-md shadow-pink-500/20 transition hover:opacity-95 active:scale-[0.98]"
+						class="ml-auto mr-2 mb-2 cursor-pointer rounded-full p-3
+            bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500
+            text-white shadow-md shadow-pink-500/20 hover:opacity-95 active:scale-[0.98] transition"
 						size="icon-xs"
 						onclick={localFindMovieScripts}
 						disabled={btnDisabled}
@@ -100,22 +89,12 @@
 			</InputGroup.Root>
 
 			<div class="mt-4 flex flex-wrap gap-2">
-				{#each suggestions as s (s)}
+				{#each suggestions as s}
 					<button
 						type="button"
-						class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 transition hover:bg-slate-50"
+						class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition"
 						disabled={btnDisabled}
-						onclick={async () => {
-							try {
-								btnDisabled = true;
-								query = s;
-								await localFindMovieScripts();
-							} catch (err) {
-								handleError(err);
-							} finally {
-								btnDisabled = false;
-							}
-						}}
+						onclick={() => (query = s)}
 					>
 						{s}
 					</button>
@@ -138,22 +117,20 @@
 				</div>
 
 				<div class="mt-4 grid gap-3">
-					{#each options as script (script)}
+					{#each options as script}
 						<button
 							type="button"
 							disabled={btnDisabled}
 							onclick={async () => await localAnalyzeMovieScripts(script)}
 							class="group flex w-full items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left transition
-                 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.995]"
+                 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.995]"
 						>
 							<div class="min-w-0">
 								<p class="truncate text-sm font-medium text-slate-900">{script}</p>
 								<p class="mt-1 text-xs text-slate-500">Click to analyze this script</p>
 							</div>
 
-							<span
-								class="shrink-0 rounded-full border border-slate-200 bg-white p-2 text-slate-700 transition group-hover:bg-slate-50"
-							>
+							<span class="shrink-0 rounded-full border border-slate-200 bg-white p-2 text-slate-700 group-hover:bg-slate-50 transition">
 								<PlusIcon class="h-4 w-4" />
 							</span>
 						</button>
@@ -162,8 +139,7 @@
 			{:else}
 				<div class="mt-6 rounded-2xl border border-slate-200 bg-white px-4 py-3">
 					<p class="text-sm text-slate-600">
-						Tip: search by movie title (e.g., <span class="font-medium text-slate-900">Titanic</span
-						>).
+						Tip: search by movie title (e.g., <span class="font-medium text-slate-900">Titanic</span>).
 					</p>
 				</div>
 			{/if}
