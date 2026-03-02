@@ -8,3 +8,9 @@ export function handleError(err: unknown) {
 		toast.error('Unhandled error');
 	}
 }
+
+export const API_KEY_COOKIE = 'Api-Key';
+
+export function getTimestampInSeconds() {
+	return Math.floor(Date.now() / 1000);
+}

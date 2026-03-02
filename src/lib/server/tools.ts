@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm';
-import { tool } from 'langchain';
+import { type ReactAgent, tool } from 'langchain';
 import * as z from 'zod';
-import { postAnalystSubagent } from './agents';
+
 import { db } from './db';
 import { playerTypologiesTable, postsTable } from './db/schema';
 
@@ -28,27 +28,29 @@ export const savePostToDB = tool(
 	}
 );
 
-export const callPostAnalystSubagent = tool(
-	async ({ query }) => {
-		await postAnalystSubagent.invoke({
-			messages: [{ role: 'user', content: query }]
-		});
+export function callPostAnalystSubagent(postAnalystSubagent: ReactAgent) {
+	return tool(
+		async ({ query }) => {
+			await postAnalystSubagent.invoke({
+				messages: [{ role: 'user', content: query }]
+			});
 
-		return '';
-	},
-	{
-		name: 'callPostAnalystSubagent',
-		description:
-			'Sends the detected abusive or manipulative scene text to the PostAnalystSubagent for deeper analysis.',
-		schema: z.object({
-			query: z
-				.string()
-				.describe(
-					'The text or excerpt of the movie script containing the potential abuse or manipulation.'
-				)
-		})
-	}
-);
+			return '';
+		},
+		{
+			name: 'callPostAnalystSubagent',
+			description:
+				'Sends the detected abusive or manipulative scene text to the PostAnalystSubagent for deeper analysis.',
+			schema: z.object({
+				query: z
+					.string()
+					.describe(
+						'The text or excerpt of the movie script containing the potential abuse or manipulation.'
+					)
+			})
+		}
+	);
+}
 
 export const getAllPlayerTypologies = tool(
 	async () => {

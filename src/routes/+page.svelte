@@ -33,7 +33,6 @@
 			}
 
 			localStorage.setItem('apiKey', key);
-
 		} catch (e) {
 			errorMsg = e instanceof Error ? e.message : 'Login failed.';
 		} finally {
@@ -47,18 +46,25 @@
 	}
 </script>
 
-<div class="flex h-full w-full items-center justify-center bg-gradient-to-b from-white to-slate-50 px-4">
+<div
+	class="flex h-full w-full items-center justify-center px-4
+         bg-gradient-to-b from-white to-slate-50
+         dark:from-slate-950 dark:to-slate-900"
+>
 	<div class="relative w-full max-w-sm">
 		<div class="absolute -inset-[1px] rounded-3xl bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-80 blur-[2px]"></div>
 
-		<Card.Root class="relative rounded-3xl border border-slate-200/60 bg-white/80 shadow-xl backdrop-blur">
+		<Card.Root
+			class="relative rounded-3xl border border-slate-200/60 bg-white/80 shadow-xl backdrop-blur
+             dark:border-slate-700/60 dark:bg-slate-950/60"
+		>
 			<Card.Header>
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-3">
 						<img src="/logo.jpg" alt="Logo" class="h-10 w-10 rounded-xl object-cover" />
 						<div>
-							<Card.Title class="text-slate-900">Login with API Key</Card.Title>
-							<Card.Description class="text-slate-500">Use your OpenAI API key</Card.Description>
+							<Card.Title class="text-slate-900 dark:text-slate-100">Login with API Key</Card.Title>
+							<Card.Description class="text-slate-500 dark:text-slate-400">Use your OpenAI API key</Card.Description>
 						</div>
 					</div>
 
@@ -71,14 +77,18 @@
 			</Card.Header>
 
 			<Card.Content>
-
-				<form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+				<form
+					onsubmit={(e) => {
+						e.preventDefault();
+						handleLogin();
+					}}
+				>
 					<div class="grid gap-2">
 						<div class="flex items-center justify-between">
-							<Label for="apiKey">API Key</Label>
+							<Label for="apiKey" class="text-slate-700 dark:text-slate-200">API Key</Label>
 							<button
 								type="button"
-								class="text-sm text-slate-600 underline-offset-4 hover:underline"
+								class="text-sm text-slate-600 underline-offset-4 hover:underline dark:text-slate-300"
 								onclick={() => (showKey = !showKey)}
 							>
 								{showKey ? 'Hide' : 'Show'}
@@ -92,6 +102,8 @@
 							bind:value={apiKey}
 							required
 							autocomplete="off"
+							class="bg-white/80 text-slate-900 placeholder:text-slate-400
+                     dark:bg-slate-950/40 dark:text-slate-100 dark:placeholder:text-slate-500"
 						/>
 
 						{#if errorMsg}
@@ -111,7 +123,12 @@
 					{loading ? 'Logging in...' : 'Login'}
 				</Button>
 
-				<Button variant="outline" class="w-full" type="button" onclick={clearKey}>
+				<Button
+					variant="outline"
+					class="w-full dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-100 dark:hover:bg-slate-900"
+					type="button"
+					onclick={clearKey}
+				>
 					Clear
 				</Button>
 			</Card.Footer>

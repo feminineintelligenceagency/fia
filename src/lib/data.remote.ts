@@ -1,8 +1,18 @@
-import { command } from '$app/server';
+import { command, getRequestEvent } from '$app/server';
+import { fromAbsolute } from '@internationalized/date';
+import { ChatOpenAI } from '@langchain/openai';
 import { error } from '@sveltejs/kit';
 import { type } from 'arktype';
 import { JSDOM } from 'jsdom';
-import { agent } from './server/agents';
+import { createAgent } from 'langchain';
+import { API_KEY_COOKIE, getTimestampInSeconds } from './consts';
+import { mainAgentPrompt, postAnalystSubagentPrompt } from './server/prompts';
+import {
+	callPostAnalystSubagent,
+	getAllPlayerTypologies,
+	getPlayerTypologyInformationByName,
+	savePostToDB
+} from './server/tools';
 
 export const findMovieScripts = command(type({ query: 'string > 0' }), async ({ query }) => {
 	const fd = new FormData();
@@ -51,6 +61,32 @@ function chunkText(text: string, chunkSize: number = 4096) {
 export const analyzeMovieScript = command(
 	type({ scriptUrl: 'string.url' }),
 	async ({ scriptUrl }) => {
+		const { cookies } = getRequestEvent();
+
+		const apiKey = cookies.get(API_KEY_COOKIE);
+
+		if (!apiKey) {
+			error(500, 'No api key set');
+		}
+
+		const llm = new ChatOpenAI({
+			model: 'gpt-5-nano',
+			maxRetries: 2,
+			apiKey
+		});
+
+		const postAnalystSubagent = createAgent({
+			model: llm,
+			tools: [savePostToDB, getAllPlayerTypologies, getPlayerTypologyInformationByName],
+			systemPrompt: postAnalystSubagentPrompt
+		});
+
+		const agent = createAgent({
+			model: llm,
+			tools: [callPostAnalystSubagent(postAnalystSubagent)],
+			systemPrompt: mainAgentPrompt
+		});
+
 		const req = await fetch(scriptUrl, {});
 
 		let htmlString = await req.text();
@@ -65,7 +101,6 @@ export const analyzeMovieScript = command(
 		const chunks = chunkText(htmlString);
 		let k = 0;
 		for (const chunk of chunks) {
-			console.log(k);
 			await agent.invoke({
 				messages: [{ role: 'human', content: chunk }]
 			});
@@ -79,3 +114,23 @@ export const analyzeMovieScript = command(
 		return 'done';
 	}
 );
+
+export const setApiKey = command(type('string > 0'), async (key) => {
+	const { cookies } = getRequestEvent();
+
+	if (!key.startsWith('sk-')) {
+		error(500, 'Wrong api key format');
+	}
+
+	const maxAge = getTimestampInSeconds() + 90 * 24 * 60 * 60; // 90 days in seconds
+
+	const date = fromAbsolute(maxAge * 1000, 'America/Phoenix').toDate();
+
+	cookies.set(API_KEY_COOKIE, key, {
+		path: '/',
+		httpOnly: true,
+		secure: true,
+		maxAge,
+		expires: date
+	});
+});
