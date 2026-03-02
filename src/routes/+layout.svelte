@@ -1,17 +1,13 @@
 <script lang="ts">
-	import '../app.css';
+	import ModeToggle from '$lib/components/ModeToggle.svelte';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
-
-	import { ModeWatcher } from 'mode-watcher';
-	import ModeToggle from '$lib/components/ui/ModeToggle.svelte';
+	import '../app.css';
 
 	let { children } = $props();
 </script>
 
-<ModeWatcher />
-
 <!-- Global toggle (shows on every page) -->
-<div class="fixed right-4 top-4 z-50">
+<div class="fixed top-4 right-4 z-50">
 	<ModeToggle />
 </div>
 
