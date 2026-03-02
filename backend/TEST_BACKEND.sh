@@ -105,6 +105,69 @@ curl -s -X POST http://localhost:8000/analyze \
 
 echo ""
 echo "=========================================="
+echo "Test 4: Typologies Listing"
+echo "=========================================="
+curl -s http://localhost:8000/typologies | python3 -m json.tool | head -40
+
+echo ""
+echo "=========================================="
+echo "Test 5: Single Typology Lookup"
+echo "=========================================="
+curl -s "http://localhost:8000/typologies/Mr.%20Always%20Right" | python3 -m json.tool | head -30
+
+echo ""
+echo "=========================================="
+echo "Test 6: Abuse Flavors"
+echo "=========================================="
+curl -s http://localhost:8000/abuse-flavors | python3 -m json.tool | head -30
+
+echo ""
+echo "=========================================="
+echo "Test 7: Trauma Types"
+echo "=========================================="
+curl -s http://localhost:8000/trauma-types | python3 -m json.tool | head -30
+
+echo ""
+echo "=========================================="
+echo "Test 8: Vulnerability Types"
+echo "=========================================="
+curl -s http://localhost:8000/vulnerability-types | python3 -m json.tool | head -30
+
+echo ""
+echo "=========================================="
+echo "Test 9: Semantic Search"
+echo "=========================================="
+curl -s -X POST "http://localhost:8000/search?query=guilt+tripping+behavior&k=3" | python3 -m json.tool
+
+echo ""
+echo "=========================================="
+echo "Test 10: Pattern Explain"
+echo "=========================================="
+curl -s -X POST http://localhost:8000/explain-pattern \
+  -H "Content-Type: application/json" \
+  -d '{"pattern_name": "Mr. Always Right"}' | python3 -m json.tool
+
+echo ""
+echo "=========================================="
+echo "Test 11: Pattern Compare"
+echo "=========================================="
+curl -s -X POST http://localhost:8000/compare-patterns \
+  -H "Content-Type: application/json" \
+  -d '{"pattern_a": "Mr. Always Right", "pattern_b": "The Subtle Saboteur"}' | python3 -m json.tool
+
+echo ""
+echo "=========================================="
+echo "Test 12: Safety Plan"
+echo "=========================================="
+curl -s -X POST http://localhost:8000/safety-plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "story": "My partner controls everything I do and isolates me from friends.",
+    "patterns_detected": ["Mr. Always Right"]
+  }' | python3 -m json.tool
+
+echo ""
+echo "=========================================="
 echo "Testing Complete!"
 echo "=========================================="
 echo -e "${GREEN}✓ All tests passed${NC}"
