@@ -5,20 +5,39 @@
 	import { analyzeMovieScript, findMovieScripts } from '$lib/data.remote.js';
 	import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 	import PlusIcon from '@lucide/svelte/icons/plus';
+	import Shield from '@lucide/svelte/icons/shield';
+	import ShieldOff from '@lucide/svelte/icons/shield-off';
 	import { toast } from 'svelte-sonner';
+
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+
+	import {
+		privateMode,
+		startPrivateMode,
+		stopPrivateMode,
+		addSessionResult
+	} from '$lib/stores/privatemode';
 
 	let btnDisabled = $state(false);
 	let query = $state('titanic');
 	let options = $state<string[]>([]);
 
-	const suggestions = [
-		'titanic',
-		'inception',
-		'the godfather',
-		'interstellar',
-		'fight club',
-		'parasite'
-	];
+	const suggestions = ['titanic', 'inception', 'the godfather', 'interstellar', 'fight club', 'parasite'];
+
+	function togglePrivate() {
+		if ($privateMode) stopPrivateMode();
+		else startPrivateMode();
+	}
+
+	function getPrivateToggleClasses() {
+		return (
+			'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition ' +
+			($privateMode
+				? 'border-pink-300/60 bg-pink-500/10 text-pink-600 hover:bg-pink-500/15'
+				: 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50')
+		);
+	}
 
 	async function localFindMovieScripts() {
 		btnDisabled = true;
@@ -33,13 +52,29 @@
 
 	async function localAnalyzeMovieScripts(scriptUrl: string) {
 		btnDisabled = true;
+
 		try {
-			const script = await analyzeMovieScript({ scriptUrl });
-			console.log(script);
-			toast.success('Analysis complete');
+			const result = await analyzeMovieScript({ scriptUrl });
+
+			if ($privateMode) {
+				addSessionResult({
+					id: crypto.randomUUID?.() ?? String(Date.now()),
+					title: query || 'Untitled',
+					source: scriptUrl,
+					createdAt: Date.now(),
+					result
+				});
+
+				toast.success('Private analysis complete');
+				await goto(resolve('/app/session'));
+			} else {
+				console.log(result);
+				toast.success('Analysis complete');
+			}
 		} catch (err) {
 			handleError(err);
 		}
+
 		btnDisabled = false;
 	}
 </script>
@@ -50,16 +85,28 @@
 			class="absolute -inset-px rounded-3xl bg-linear-to-r from-pink-400 via-purple-400 to-blue-400 opacity-80 blur-[2px]"
 		></div>
 
-		<div
-			class="relative rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur"
-		>
-			<div class="flex items-center gap-3">
-				<span
-					class="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white"
-				>
-					Digital Think Tank
-				</span>
-				<span class="text-xs text-slate-500">Script Search + Analysis</span>
+		<div class="relative rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur">
+			<div class="flex items-center justify-between gap-3">
+				<div class="flex items-center gap-3">
+					<span
+						class="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white"
+					>
+						Digital Think Tank
+					</span>
+					<span class="text-xs text-slate-500">Script Search + Analysis</span>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<button type="button" onclick={togglePrivate} class={getPrivateToggleClasses()}>
+						{#if $privateMode}
+							<Shield class="h-4 w-4" />
+							Private Mode ON
+						{:else}
+							<ShieldOff class="h-4 w-4" />
+							Private Mode OFF
+						{/if}
+					</button>
+				</div>
 			</div>
 
 			<h1 class="mt-4 text-4xl leading-tight font-extrabold text-slate-900">
@@ -86,9 +133,8 @@
 				<InputGroup.Addon align="block-end">
 					<InputGroup.Button
 						variant="default"
-						class="mr-2 mb-2 ml-auto cursor-pointer rounded-full bg-linear-to-r
-            from-pink-500 via-purple-500 to-blue-500 p-3
-            text-white shadow-md shadow-pink-500/20 transition hover:opacity-95 active:scale-[0.98]"
+						class="mr-2 mb-2 ml-auto cursor-pointer rounded-full bg-linear-to-r from-pink-500 via-purple-500 to-blue-500 p-3
+						text-white shadow-md shadow-pink-500/20 transition hover:opacity-95 active:scale-[0.98]"
 						size="icon-xs"
 						onclick={localFindMovieScripts}
 						disabled={btnDisabled}
@@ -144,7 +190,7 @@
 							disabled={btnDisabled}
 							onclick={async () => await localAnalyzeMovieScripts(script)}
 							class="group flex w-full items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left transition
-                 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.995]"
+							hover:border-slate-300 hover:bg-slate-50 active:scale-[0.995]"
 						>
 							<div class="min-w-0">
 								<p class="truncate text-sm font-medium text-slate-900">{script}</p>
@@ -162,8 +208,7 @@
 			{:else}
 				<div class="mt-6 rounded-2xl border border-slate-200 bg-white px-4 py-3">
 					<p class="text-sm text-slate-600">
-						Tip: search by movie title (e.g., <span class="font-medium text-slate-900">Titanic</span
-						>).
+						Tip: search by movie title (e.g., <span class="font-medium text-slate-900">Titanic</span>).
 					</p>
 				</div>
 			{/if}
