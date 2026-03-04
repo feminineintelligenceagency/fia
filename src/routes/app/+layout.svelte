@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import Activity from '@lucide/svelte/icons/activity';
 	import Home from '@lucide/svelte/icons/house';
+	import Chat from '@lucide/svelte/icons/message-circle-more';
 	import ScrollText from '@lucide/svelte/icons/scroll-text';
 
 	const links = [
@@ -12,6 +14,14 @@
 		{
 			href: '/app/posts',
 			icon: ScrollText
+		},
+		{
+			href: '/app/scenario-analyzer',
+			icon: Activity
+		},
+		{
+			href: '/app/chat',
+			icon: Chat
 		}
 	];
 

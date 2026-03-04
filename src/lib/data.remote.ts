@@ -6,13 +6,18 @@ import { type } from 'arktype';
 import { JSDOM } from 'jsdom';
 import { createAgent } from 'langchain';
 import { API_KEY_COOKIE, getTimestampInSeconds } from './consts';
-import { mainAgentPrompt, postAnalystSubagentPrompt } from './server/prompts';
+import {
+	mainAgentPrompt,
+	postAnalystSubagentPrompt,
+	scenarioAnalyzerPrompt
+} from './server/prompts';
 import {
 	callPostAnalystSubagent,
 	getAllPlayerTypologies,
 	getPlayerTypologyInformationByName,
 	savePostToDB
 } from './server/tools';
+import { dev } from '$app/environment';
 
 export const findMovieScripts = command(type({ query: 'string > 0' }), async ({ query }) => {
 	const fd = new FormData();
@@ -133,4 +138,34 @@ export const setApiKey = command(type('string > 0'), async (key) => {
 		maxAge,
 		expires: date
 	});
+});
+
+export const analyzeScenario = command(type({ scenario: 'string > 0' }), async ({ scenario }) => {
+	const { cookies } = getRequestEvent();
+
+	const apiKey = cookies.get(API_KEY_COOKIE);
+
+	if (!apiKey) {
+		error(500, 'No api key set');
+	}
+
+	const llm = new ChatOpenAI({
+		model: 'gpt-5-nano',
+		maxRetries: 2,
+		apiKey
+	});
+
+	const agent = createAgent({
+		model: llm,
+		tools: [getAllPlayerTypologies, getPlayerTypologyInformationByName],
+		systemPrompt: dev
+			? scenarioAnalyzerPrompt + '\n keep it really really short'
+			: scenarioAnalyzerPrompt
+	});
+
+	const { messages } = await agent.invoke({
+		messages: [{ role: 'human', content: scenario }]
+	});
+
+	return messages.at(-1)?.content.toString() || '';
 });
