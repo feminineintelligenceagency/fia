@@ -43,3 +43,67 @@ class HealthResponse(BaseModel):
 
     status: str
     message: str
+
+
+class PatternSearchResult(BaseModel):
+    """Single search result with relevance score."""
+
+    content: str
+    metadata: dict
+    relevance_score: float
+
+
+class PatternSearchResponse(BaseModel):
+    """Response from semantic pattern search."""
+
+    query: str
+    results: List[PatternSearchResult]
+    count: int
+
+
+class ExplainRequest(BaseModel):
+    """Request to explain a pattern."""
+
+    pattern_name: str
+
+
+class ExplainResponse(BaseModel):
+    """AI-generated plain-language explanation."""
+
+    pattern_name: str
+    explanation: str
+    key_red_flags: List[str]
+    safety_tips: List[str]
+
+
+class CompareRequest(BaseModel):
+    """Request to compare two patterns."""
+
+    pattern_a: str
+    pattern_b: str
+
+
+class CompareResponse(BaseModel):
+    """AI-generated comparison of two patterns."""
+
+    pattern_a: str
+    pattern_b: str
+    similarities: List[str]
+    differences: List[str]
+    combined_danger: str
+
+
+class SafetyPlanRequest(BaseModel):
+    """Request for a safety plan based on analysis."""
+
+    story: str
+    patterns_detected: List[str]
+
+
+class SafetyPlanResponse(BaseModel):
+    """AI-generated safety plan."""
+
+    immediate_steps: List[str]
+    long_term_strategies: List[str]
+    resources: List[str]
+    affirmation: str
