@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import Brain from '@lucide/svelte/icons/brain';
 	import Home from '@lucide/svelte/icons/house';
 	import ScrollText from '@lucide/svelte/icons/scroll-text';
 
@@ -12,6 +13,10 @@
 		{
 			href: '/app/posts',
 			icon: ScrollText
+		},
+		{
+			href: '/app/rag',
+			icon: Brain
 		}
 	];
 
