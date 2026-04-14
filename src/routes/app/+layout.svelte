@@ -5,6 +5,7 @@
 	import Home from '@lucide/svelte/icons/house';
 	import Chat from '@lucide/svelte/icons/message-circle-more';
 	import ScrollText from '@lucide/svelte/icons/scroll-text';
+	import FileUp from '@lucide/svelte/icons/file-up';
 
 	const links = [
 		{
@@ -22,6 +23,10 @@
 		{
 			href: '/app/chats',
 			icon: Chat
+		},
+		{
+			href: '/app/script-upload-analyzer',
+			icon: FileUp
 		}
 	];
 

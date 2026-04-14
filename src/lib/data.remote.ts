@@ -1,5 +1,5 @@
 import { dev } from '$app/environment';
-import { command, getRequestEvent } from '$app/server';
+import { command, form, getRequestEvent } from '$app/server';
 import { fromAbsolute } from '@internationalized/date';
 import { ChatOpenAI } from '@langchain/openai';
 import { error } from '@sveltejs/kit';
@@ -7,7 +7,7 @@ import { type } from 'arktype';
 import { asc, eq } from 'drizzle-orm';
 import { JSDOM } from 'jsdom';
 import { createAgent } from 'langchain';
-import { API_KEY_COOKIE, getTimestampInSeconds } from './consts';
+import { API_KEY_COOKIE, getTimestampInSeconds, sleep } from './consts';
 import { db } from './server/db';
 import { chatMessagesTable, chatsTable } from './server/db/schema';
 import {
@@ -145,9 +145,11 @@ export const setApiKey = command(type('string > 0'), async (key) => {
 });
 
 export const createChat = command(async () => {
+	const title = `Chat from ${new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`;
+
 	const [chat] = await db
 		.insert(chatsTable)
-		.values({ id: crypto.randomUUID(), title: 'Default Title' })
+		.values({ id: crypto.randomUUID(), title })
 		.returning({ id: chatsTable.id });
 
 	return chat.id;
@@ -197,6 +199,47 @@ export const sendChatMessage = command(
 		return assistantContent || '';
 	}
 );
+
+export const analyzeUploadedScript = form(type({ file: 'File' }), async ({ file }) => {
+	const { cookies } = getRequestEvent();
+
+	const apiKey = cookies.get(API_KEY_COOKIE);
+
+	if (!apiKey) {
+		error(500, 'No api key set');
+	}
+
+	const llm = new ChatOpenAI({
+		model: 'gpt-5-nano',
+		maxRetries: 2,
+		apiKey
+	});
+
+	const postAnalystSubagent = createAgent({
+		model: llm,
+		tools: [savePostToDB, getAllPlayerTypologies, getPlayerTypologyInformationByName],
+		systemPrompt: postAnalystSubagentPrompt
+	});
+
+	const agent = createAgent({
+		model: llm,
+		tools: [callPostAnalystSubagent(postAnalystSubagent)],
+		systemPrompt: mainAgentPrompt
+	});
+
+	const text = await file.text();
+
+	const chunks = chunkText(text).slice(0, 10);
+
+	for (const chunk of chunks) {
+		await sleep(200);
+		agent.invoke({
+			messages: [{ role: 'human', content: chunk }]
+		});
+	}
+
+	return 'done';
+});
 
 export const analyzeScenario = command(type({ scenario: 'string > 0' }), async ({ scenario }) => {
 	const { cookies } = getRequestEvent();
