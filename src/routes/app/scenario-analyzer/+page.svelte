@@ -5,7 +5,7 @@
 	import { analyzeScenario } from '$lib/data.remote';
 	import Markdown from 'svelte-exmarkdown';
 
-	let scenario = $state('my girlfriend beats me up');
+	let scenario = $state('my girlfriend abuses me and lies to me');
 
 	let btnDisabled = $state(false);
 
@@ -41,6 +41,7 @@
 					} catch (err) {
 						handleError(err);
 					} finally {
+						scenario = '';
 						btnDisabled = false;
 					}
 				}}

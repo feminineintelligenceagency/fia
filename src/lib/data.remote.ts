@@ -1,12 +1,17 @@
+import { dev } from '$app/environment';
 import { command, getRequestEvent } from '$app/server';
 import { fromAbsolute } from '@internationalized/date';
 import { ChatOpenAI } from '@langchain/openai';
 import { error } from '@sveltejs/kit';
 import { type } from 'arktype';
+import { asc, eq } from 'drizzle-orm';
 import { JSDOM } from 'jsdom';
 import { createAgent } from 'langchain';
 import { API_KEY_COOKIE, getTimestampInSeconds } from './consts';
+import { db } from './server/db';
+import { chatMessagesTable, chatsTable } from './server/db/schema';
 import {
+	chatSystemPrompt,
 	mainAgentPrompt,
 	postAnalystSubagentPrompt,
 	scenarioAnalyzerPrompt
@@ -17,7 +22,6 @@ import {
 	getPlayerTypologyInformationByName,
 	savePostToDB
 } from './server/tools';
-import { dev } from '$app/environment';
 
 export const findMovieScripts = command(type({ query: 'string > 0' }), async ({ query }) => {
 	const fd = new FormData();
@@ -139,6 +143,60 @@ export const setApiKey = command(type('string > 0'), async (key) => {
 		expires: date
 	});
 });
+
+export const createChat = command(async () => {
+	const [chat] = await db
+		.insert(chatsTable)
+		.values({ id: crypto.randomUUID(), title: 'Default Title' })
+		.returning({ id: chatsTable.id });
+
+	return chat.id;
+});
+
+export const sendChatMessage = command(
+	type({ chat_id: 'string.uuid.v4', content: 'string > 0' }),
+	async ({ chat_id, content }) => {
+		const { cookies } = getRequestEvent();
+
+		const apiKey = cookies.get(API_KEY_COOKIE);
+
+		if (!apiKey) {
+			error(500, 'No api key set');
+		}
+
+		const existing = await db
+			.select({ role: chatMessagesTable.role, content: chatMessagesTable.content })
+			.from(chatMessagesTable)
+			.where(eq(chatMessagesTable.chat_id, chat_id))
+			.orderBy(asc(chatMessagesTable.when_created));
+
+		await db.insert(chatMessagesTable).values({ chat_id, role: 'user', content });
+
+		const llm = new ChatOpenAI({
+			model: 'gpt-5-nano',
+			maxRetries: 2,
+			apiKey
+		});
+
+		const agent = createAgent({
+			model: llm,
+			tools: [getAllPlayerTypologies, getPlayerTypologyInformationByName],
+			systemPrompt: chatSystemPrompt
+		});
+
+		const response = await agent.invoke({
+			messages: [...existing, { role: 'user', content }]
+		});
+
+		const assistantContent = response.messages.at(-1)?.content.toString();
+
+		await db
+			.insert(chatMessagesTable)
+			.values({ chat_id, role: 'assistant', content: assistantContent || '' });
+
+		return assistantContent || '';
+	}
+);
 
 export const analyzeScenario = command(type({ scenario: 'string > 0' }), async ({ scenario }) => {
 	const { cookies } = getRequestEvent();

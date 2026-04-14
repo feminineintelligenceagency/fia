@@ -20,7 +20,7 @@
 			icon: Activity
 		},
 		{
-			href: '/app/chat',
+			href: '/app/chats',
 			icon: Chat
 		}
 	];
