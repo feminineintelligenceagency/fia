@@ -15,6 +15,8 @@
 	import AlertTriangle from '@lucide/svelte/icons/triangle-alert';
 	import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 	import Brain from '@lucide/svelte/icons/brain';
+	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
+	import ClipboardList from '@lucide/svelte/icons/clipboard-list';
 	import GitCompareArrows from '@lucide/svelte/icons/git-compare-arrows';
 	import HeartHandshake from '@lucide/svelte/icons/heart-handshake';
 	import Info from '@lucide/svelte/icons/info';
@@ -50,6 +52,169 @@
 	let searchQuery = $state('');
 	let searchResults = $state<SearchResponse | null>(null);
 	let isSearching = $state(false);
+
+	// --- Red Flag Self-Assessment state ---
+	const redFlagCategories: {
+		name: string;
+		headingClass: string;
+		checkedClass: string;
+		boxClass: string;
+		items: string[];
+	}[] = [
+		{
+			name: 'Emotional',
+			headingClass: 'text-pink-500',
+			checkedClass:
+				'border-pink-400 bg-pink-50 text-foreground dark:bg-pink-950/30',
+			boxClass: 'border-pink-500 bg-pink-500 text-white',
+			items: [
+				'Belittles or mocks me in front of others',
+				'Gives me the silent treatment as punishment',
+				'Tells me I am overreacting when I express hurt',
+				'Makes me feel guilty for having my own feelings'
+			]
+		},
+		{
+			name: 'Control',
+			headingClass: 'text-purple-500',
+			checkedClass:
+				'border-purple-400 bg-purple-50 text-foreground dark:bg-purple-950/30',
+			boxClass: 'border-purple-500 bg-purple-500 text-white',
+			items: [
+				'Tracks my phone, messages, or location',
+				'Controls the money or how I spend it',
+				'Decides who I am allowed to see or talk to',
+				'Blows up when I set boundaries'
+			]
+		},
+		{
+			name: 'Isolation',
+			headingClass: 'text-blue-500',
+			checkedClass:
+				'border-blue-400 bg-blue-50 text-foreground dark:bg-blue-950/30',
+			boxClass: 'border-blue-500 bg-blue-500 text-white',
+			items: [
+				'Has pushed me away from close friends',
+				'Discourages me from seeing my family',
+				'Makes me feel like no one else understands them like I do',
+				'I feel alone even when I am with them'
+			]
+		},
+		{
+			name: 'Deception',
+			headingClass: 'text-amber-500',
+			checkedClass:
+				'border-amber-400 bg-amber-50 text-foreground dark:bg-amber-950/30',
+			boxClass: 'border-amber-500 bg-amber-500 text-white',
+			items: [
+				'I have caught them in repeated lies',
+				'Hides accounts, purchases, or whereabouts',
+				'Love-bombs me, then turns cold without warning',
+				'Rewrites history about things I know happened'
+			]
+		}
+	];
+	let checkedItems = $state<Set<string>>(new Set());
+	let assessmentResult = $state<AnalyzeResponse | null>(null);
+	let isAssessing = $state(false);
+	const checkedCount = $derived(checkedItems.size);
+	const riskLevel = $derived(deriveRiskLevel(checkedCount, assessmentResult));
+
+	function toggleCheck(item: string) {
+		const next = new Set(checkedItems);
+		if (next.has(item)) next.delete(item);
+		else next.add(item);
+		checkedItems = next;
+	}
+
+	function deriveRiskLevel(
+		count: number,
+		result: AnalyzeResponse | null
+	): {
+		label: string;
+		description: string;
+		bannerClass: string;
+		iconClass: string;
+		labelClass: string;
+	} {
+		const hasDanger = result?.findings?.some((f) => f.type === 'danger') ?? false;
+		if (count === 0)
+			return {
+				label: 'Not assessed',
+				description: 'Check items to begin',
+				bannerClass:
+					'border-slate-300/50 bg-slate-50/60 dark:border-slate-500/30 dark:bg-slate-900/40',
+				iconClass: 'text-slate-500',
+				labelClass: 'text-slate-600 dark:text-slate-400'
+			};
+		if (hasDanger || count >= 10)
+			return {
+				label: 'Critical',
+				description: 'Multiple severe red flags present',
+				bannerClass: 'border-red-300/50 bg-red-50/60 dark:border-red-500/30 dark:bg-red-950/20',
+				iconClass: 'text-red-500',
+				labelClass: 'text-red-600 dark:text-red-400'
+			};
+		if (count >= 6)
+			return {
+				label: 'High',
+				description: 'Significant pattern of concern',
+				bannerClass:
+					'border-orange-300/50 bg-orange-50/60 dark:border-orange-500/30 dark:bg-orange-950/20',
+				iconClass: 'text-orange-500',
+				labelClass: 'text-orange-600 dark:text-orange-400'
+			};
+		if (count >= 3)
+			return {
+				label: 'Moderate',
+				description: 'Early warning signs present',
+				bannerClass:
+					'border-amber-300/50 bg-amber-50/60 dark:border-amber-500/30 dark:bg-amber-950/20',
+				iconClass: 'text-amber-500',
+				labelClass: 'text-amber-600 dark:text-amber-400'
+			};
+		return {
+			label: 'Low',
+			description: 'Limited red flags detected',
+			bannerClass:
+				'border-emerald-300/50 bg-emerald-50/60 dark:border-emerald-500/30 dark:bg-emerald-950/20',
+			iconClass: 'text-emerald-500',
+			labelClass: 'text-emerald-600 dark:text-emerald-400'
+		};
+	}
+
+	async function handleAssess() {
+		if (checkedItems.size === 0 || isAssessing) return;
+		isAssessing = true;
+		assessmentResult = null;
+		const items = Array.from(checkedItems);
+		const story =
+			"I have experienced the following behaviors in my relationship: " +
+			items.map((i) => `- ${i}`).join('; ') +
+			'. Please analyze the manipulation patterns at play.';
+		try {
+			const res = await fetch('/api/rag/analyze', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ content: story })
+			});
+			if (!res.ok) {
+				toast.error('Assessment failed');
+				isAssessing = false;
+				return;
+			}
+			assessmentResult = await res.json();
+			toast.success('Assessment complete');
+		} catch {
+			toast.error('Failed to connect to analysis service');
+		}
+		isAssessing = false;
+	}
+
+	function resetAssessment() {
+		checkedItems = new Set();
+		assessmentResult = null;
+	}
 
 	const suggestions = [
 		"He always says I'm overreacting when I bring up concerns...",
@@ -742,80 +907,156 @@
 	{/if}
 
 	<!-- ═══════════════════════════════════════════ -->
-	<!-- TYPOLOGIES BROWSER                         -->
+	<!-- RED FLAG SELF-ASSESSMENT                   -->
 	<!-- ═══════════════════════════════════════════ -->
-	{#if data.typologies.length > 0}
-		<Separator class="my-10" />
+	<Separator class="my-10" />
 
-		<div class="mb-6 flex items-center gap-4">
-			<div
-				class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/25"
+	<div class="mb-6 flex items-center gap-4">
+		<div
+			class="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/25"
+		>
+			<ClipboardList class="h-6 w-6 text-white" />
+		</div>
+		<div>
+			<h2
+				class="bg-linear-to-r from-rose-400 via-pink-400 to-purple-400 bg-clip-text text-2xl font-bold text-transparent"
 			>
-				<Brain class="h-6 w-6 text-white" />
-			</div>
-			<div>
-				<h2
-					class="bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-2xl font-bold text-transparent"
-				>
-					Player Typologies
-				</h2>
-				<p class="text-sm text-muted-foreground">
-					Browse {data.typologies.length} manipulation pattern types
-				</p>
-			</div>
+				Red Flag Self-Assessment
+			</h2>
+			<p class="text-sm text-muted-foreground">
+				Check behaviors you've experienced — AI will identify the patterns at play
+			</p>
 		</div>
+	</div>
 
-		<div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-			{#each data.typologies as typology, i (typology.name)}
-				<Card.Root
-					class="group relative cursor-pointer overflow-hidden border-muted/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:border-pink-500/30 hover:shadow-xl hover:shadow-pink-500/10"
-					style="animation: fadeInUp 0.4s ease-out {i * 0.05}s both;"
-					onclick={() => handleExplainPattern(typology.name)}
-				>
-					<div
-						class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-					></div>
+	<div class="relative">
+		<div
+			class="absolute -inset-px rounded-3xl bg-linear-to-r from-rose-400 via-pink-400 to-purple-400 opacity-60 blur-[2px]"
+		></div>
 
-					<Card.Header class="pb-3">
-						<Card.Title
-							class="text-lg leading-tight font-semibold text-foreground transition-colors group-hover:text-pink-500"
+		<div
+			class="relative rounded-3xl border border-border/60 bg-card/80 p-6 shadow-xl backdrop-blur sm:p-8"
+		>
+			<div class="grid gap-6 sm:grid-cols-2">
+				{#each redFlagCategories as category (category.name)}
+					<div>
+						<h3 class="mb-3 text-xs font-semibold tracking-wider uppercase {category.headingClass}">
+							{category.name}
+						</h3>
+						<div class="space-y-2">
+							{#each category.items as item (item)}
+								{@const isChecked = checkedItems.has(item)}
+								<button
+									type="button"
+									onclick={() => toggleCheck(item)}
+									disabled={isAssessing}
+									class="group flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition {isChecked
+										? category.checkedClass
+										: 'border-border bg-background hover:border-pink-300/60 hover:bg-muted/50'}"
+								>
+									<span
+										class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition {isChecked
+											? category.boxClass
+											: 'border-border bg-background'}"
+									>
+										{#if isChecked}
+											<CheckCircle2 class="h-3 w-3" />
+										{/if}
+									</span>
+									<span class="leading-snug">{item}</span>
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			</div>
+
+			<Separator class="my-6" />
+
+			<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+				<div class="flex items-center gap-3">
+					<Badge
+						variant="outline"
+						class="border-rose-300/50 bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-300"
+					>
+						{checkedCount} checked
+					</Badge>
+					{#if checkedCount > 0}
+						<button
+							type="button"
+							class="text-xs text-muted-foreground underline-offset-2 hover:underline"
+							onclick={resetAssessment}
 						>
-							{typology.name}
-						</Card.Title>
-					</Card.Header>
+							Reset
+						</button>
+					{/if}
+				</div>
+				<Button
+					class="rounded-full bg-linear-to-r from-rose-500 via-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20 hover:opacity-95 active:scale-[0.98]"
+					onclick={handleAssess}
+					disabled={!data.backendAvailable || isAssessing || checkedCount === 0}
+				>
+					{#if isAssessing}
+						<Spinner class="h-4 w-4" />
+					{:else}
+						<Sparkles class="h-4 w-4" />
+					{/if}
+					Analyze My Checklist
+				</Button>
+			</div>
 
-					<Card.Content>
-						<p class="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-							{typology.summary ?? 'No description available'}
-						</p>
-
-						{#if (typology.main_motivation ?? []).length > 0}
-							<div class="mt-3 flex flex-wrap gap-1.5">
-								{#each (typology.main_motivation ?? []).slice(0, 3) as tactic (tactic)}
-									<Badge variant="outline" class="text-xs">
-										{tactic}
-									</Badge>
-								{/each}
-								{#if (typology.main_motivation ?? []).length > 3}
-									<Badge variant="secondary" class="text-xs">
-										+{typology.main_motivation.length - 3}
-									</Badge>
-								{/if}
+			{#if assessmentResult}
+				<div class="mt-6 space-y-4" style="animation: fadeInUp 0.4s ease-out both;">
+					<!-- Risk level banner -->
+					<div class="flex items-center justify-between rounded-2xl border p-5 {riskLevel.bannerClass}">
+						<div class="flex items-center gap-3">
+							<ShieldAlert class="h-6 w-6 {riskLevel.iconClass}" />
+							<div>
+								<p class="text-xs font-semibold tracking-wider uppercase {riskLevel.labelClass}">
+									Risk Level
+								</p>
+								<p class="text-lg font-bold text-foreground">{riskLevel.label}</p>
 							</div>
-						{/if}
-					</Card.Content>
+						</div>
+						<p class="hidden text-sm text-muted-foreground sm:block">{riskLevel.description}</p>
+					</div>
 
-					<Card.Footer class="pt-3">
-						<span
-							class="ml-auto text-xs font-medium text-pink-500 opacity-0 transition-opacity group-hover:opacity-100"
-						>
-							Click to explain →
-						</span>
-					</Card.Footer>
-				</Card.Root>
-			{/each}
+					<!-- Matched patterns -->
+					{#if assessmentResult.patterns_detected.length > 0}
+						<div>
+							<h4 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+								Matched patterns
+							</h4>
+							<div class="flex flex-wrap gap-2">
+								{#each assessmentResult.patterns_detected as pattern (pattern)}
+									<button
+										type="button"
+										onclick={() => handleExplainPattern(pattern)}
+										class="inline-flex items-center gap-1.5 rounded-full border border-pink-300/50 bg-pink-50/50 px-3 py-1.5 text-sm font-medium text-pink-600 transition hover:border-pink-400 hover:bg-pink-50 dark:bg-pink-950/20 dark:text-pink-400 dark:hover:bg-pink-950/30"
+									>
+										<Sparkles class="h-3.5 w-3.5" />
+										{pattern}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					<!-- AI summary -->
+					<Card.Root class="border-muted/50 bg-card/80 backdrop-blur-sm">
+						<Card.Header>
+							<Card.Title class="text-sm">AI Summary</Card.Title>
+						</Card.Header>
+						<Card.Content>
+							<p class="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+								{assessmentResult.content}
+							</p>
+						</Card.Content>
+					</Card.Root>
+				</div>
+			{/if}
 		</div>
-	{/if}
+	</div>
 </div>
 
 <style>
