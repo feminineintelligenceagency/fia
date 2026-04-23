@@ -24,6 +24,8 @@
 	let query = $state('titanic');
 	let options = $state<string[]>([]);
 
+	let { data } = $props();
+
 	const suggestions = [
 		'titanic',
 		'inception',
@@ -93,7 +95,9 @@
 			class="absolute -inset-px rounded-3xl bg-linear-to-r from-pink-400 via-purple-400 to-blue-400 opacity-80 blur-[2px]"
 		></div>
 
-		<div class="relative rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur">
+		<div
+			class="relative rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur"
+		>
 			<div class="flex items-center justify-between gap-3">
 				<div class="flex items-center gap-3">
 					<span
@@ -216,7 +220,8 @@
 			{:else}
 				<div class="mt-6 rounded-2xl border border-slate-200 bg-white px-4 py-3">
 					<p class="text-sm text-slate-600">
-						Tip: search by movie title (e.g., <span class="font-medium text-slate-900">Titanic</span>).
+						Tip: search by movie title (e.g., <span class="font-medium text-slate-900">Titanic</span
+						>).
 					</p>
 				</div>
 			{/if}
@@ -224,4 +229,12 @@
 	</div>
 </div>
 
-<ExplanationPanel />
+<ExplanationPanel
+	players={data.players}
+	flavors={data.flavors}
+	playerToFlavors={data.playerToFlavors}
+	traumas={data.traumas}
+	playerToTraumas={data.playerToTraumas}
+	vulnerabilities={data.vulnerabilities}
+	playerToVulnerabilities={data.playerToVulnerabilities}
+/>

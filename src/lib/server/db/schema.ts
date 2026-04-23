@@ -46,8 +46,12 @@ export const playerTypologiesTable = pgTable('player_typologies', {
 export const playerToVulnerabilityTypesTable = pgTable(
 	'player_to_vulnerability_types',
 	{
-		player_id: integer().references(() => playerTypologiesTable.id),
-		vulnerability_type_id: integer().references(() => vulnerabilityTypesTable.id)
+		player_id: integer()
+			.notNull()
+			.references(() => playerTypologiesTable.id),
+		vulnerability_type_id: integer()
+			.notNull()
+			.references(() => vulnerabilityTypesTable.id)
 	},
 	(t) => [unique().on(t.player_id, t.vulnerability_type_id)]
 );
@@ -55,8 +59,12 @@ export const playerToVulnerabilityTypesTable = pgTable(
 export const playerToTraumasTable = pgTable(
 	'player_to_traumas',
 	{
-		player_id: integer().references(() => playerTypologiesTable.id),
-		trauma_id: integer().references(() => traumasTable.id)
+		player_id: integer()
+			.notNull()
+			.references(() => playerTypologiesTable.id),
+		trauma_id: integer()
+			.notNull()
+			.references(() => traumasTable.id)
 	},
 	(t) => [unique().on(t.player_id, t.trauma_id)]
 );
@@ -64,8 +72,12 @@ export const playerToTraumasTable = pgTable(
 export const playerToFlavorsTable = pgTable(
 	'player_to_flavors',
 	{
-		player_id: integer().references(() => playerTypologiesTable.id),
-		flavor_id: integer().references(() => flavorsOfAbuseTable.id)
+		player_id: integer()
+			.notNull()
+			.references(() => playerTypologiesTable.id),
+		flavor_id: integer()
+			.notNull()
+			.references(() => flavorsOfAbuseTable.id)
 	},
 	(t) => [unique().on(t.player_id, t.flavor_id)]
 );
