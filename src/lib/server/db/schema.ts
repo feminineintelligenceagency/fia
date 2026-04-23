@@ -69,3 +69,23 @@ export const playerToFlavorsTable = sqliteTable(
 	},
 	(t) => [unique().on(t.player_id, t.flavor_id)]
 );
+
+export const chatsTable = sqliteTable('chats', {
+	id: text().primaryKey(),
+	title: text().notNull(),
+	when_created: integer({ mode: 'timestamp' })
+		.notNull()
+		.default(sql`(strftime('%s', 'now'))`)
+});
+
+export const chatMessagesTable = sqliteTable('chat_messages', {
+	id: integer({ mode: 'number' }).primaryKey({ autoIncrement: true }),
+	chat_id: text()
+		.notNull()
+		.references(() => chatsTable.id),
+	role: text({ enum: ['user', 'assistant'] }).notNull(),
+	content: text().notNull(),
+	when_created: integer({ mode: 'timestamp' })
+		.notNull()
+		.default(sql`(strftime('%s', 'now'))`)
+});
