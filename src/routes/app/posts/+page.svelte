@@ -3,6 +3,7 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import { fromAbsolute, getLocalTimeZone } from '@internationalized/date';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Clock from '@lucide/svelte/icons/clock';
 	import ScrollText from '@lucide/svelte/icons/scroll-text';
@@ -10,15 +11,16 @@
 
 	let { data } = $props();
 
-	function formatDate(date: Date | null) {
-		if (!date) return 'Unknown';
+	function formatDate(timestamp: number) {
+		const t = fromAbsolute(timestamp * 1000, getLocalTimeZone());
+
 		return new Intl.DateTimeFormat('en-US', {
 			month: 'short',
 			day: 'numeric',
 			year: 'numeric',
 			hour: '2-digit',
 			minute: '2-digit'
-		}).format(new Date(date));
+		}).format(t.toDate());
 	}
 
 	function truncateBody(body: string, maxLength: number = 180) {

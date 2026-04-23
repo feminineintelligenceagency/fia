@@ -17,18 +17,15 @@ importers:
       '@internationalized/date':
         specifier: ^3.10.0
         version: 3.10.0
-      '@langchain/google-genai':
-        specifier: ^1.0.0
-        version: 1.0.0(@langchain/core@1.0.4(openai@6.8.1(ws@8.18.3)(zod@4.1.12)))
       '@langchain/openai':
         specifier: ^1.1.0
         version: 1.1.0(@langchain/core@1.0.4(openai@6.8.1(ws@8.18.3)(zod@4.1.12)))(ws@8.18.3)
-      '@libsql/client':
-        specifier: ^0.15.15
-        version: 0.15.15
       '@lucide/svelte':
         specifier: ^0.544.0
         version: 0.544.0(svelte@5.43.6)
+      '@neondatabase/serverless':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@sveltejs/adapter-node':
         specifier: ^5.5.4
         version: 5.5.4(@sveltejs/kit@2.48.4(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.43.6)(vite@7.2.2(@types/node@22.19.1)(jiti@2.6.1)(lightningcss@1.30.2)))(svelte@5.43.6)(vite@7.2.2(@types/node@22.19.1)(jiti@2.6.1)(lightningcss@1.30.2)))
@@ -67,7 +64,7 @@ importers:
         version: 0.31.6
       drizzle-orm:
         specifier: ^0.44.6
-        version: 0.44.7(@libsql/client@0.15.15)(postgres@3.4.7)
+        version: 0.44.7(@libsql/client@0.15.15)(@neondatabase/serverless@1.1.0)(postgres@3.4.7)
       eslint:
         specifier: ^9.38.0
         version: 9.39.1(jiti@2.6.1)
@@ -551,10 +548,6 @@ packages:
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
 
-  '@google/generative-ai@0.24.1':
-    resolution: {integrity: sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q==}
-    engines: {node: '>=18.0.0'}
-
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
     engines: {node: '>=18.18.0'}
@@ -601,12 +594,6 @@ packages:
   '@langchain/core@1.0.4':
     resolution: {integrity: sha512-zrTM4sVls18KfR6h/R7ErJUY4eeZa3Mr9s+Y6upXc2MevlYo7jfZZabs4Kv/R9fTdRFEJPwSsY1HTw5pokPrLg==}
     engines: {node: '>=20'}
-
-  '@langchain/google-genai@1.0.0':
-    resolution: {integrity: sha512-ICUBZl/46nG6+Yhe5v7kp/2TQBGOzqEkpfKPLDeNyJ4x9OOL46xsW3ZZrHJjhGMQuR6/JMmQMTU9kLoYgsd1Tg==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      '@langchain/core': ^1.0.0
 
   '@langchain/langgraph-checkpoint@1.0.0':
     resolution: {integrity: sha512-xrclBGvNCXDmi0Nz28t3vjpxSH6UYx6w5XAXSiiB1WEdc2xD2iY/a913I3x3a31XpInUW/GGfXXfePfaghV54A==}
@@ -718,6 +705,10 @@ packages:
 
   '@neon-rs/load@0.0.4':
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
+
+  '@neondatabase/serverless@1.1.0':
+    resolution: {integrity: sha512-r3ZZhRjEcfEdKIZnoB1RusNgvHuaBRqfCzV4Gi+5A9yUX0S4HTws/ASWqt13wL4y4I+0rqsWGdA2w7EQXHi3+Q==}
+    engines: {node: '>=19.0.0'}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -3250,8 +3241,6 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@google/generative-ai@0.24.1': {}
-
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -3318,12 +3307,6 @@ snapshots:
       - '@opentelemetry/sdk-trace-base'
       - openai
 
-  '@langchain/google-genai@1.0.0(@langchain/core@1.0.4(openai@6.8.1(ws@8.18.3)(zod@4.1.12)))':
-    dependencies:
-      '@google/generative-ai': 0.24.1
-      '@langchain/core': 1.0.4(openai@6.8.1(ws@8.18.3)(zod@4.1.12))
-      uuid: 11.1.0
-
   '@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.0.4(openai@6.8.1(ws@8.18.3)(zod@4.1.12)))':
     dependencies:
       '@langchain/core': 1.0.4(openai@6.8.1(ws@8.18.3)(zod@4.1.12))
@@ -3367,10 +3350,12 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
   '@libsql/core@0.15.15':
     dependencies:
       js-base64: 3.7.8
+    optional: true
 
   '@libsql/darwin-arm64@0.5.22':
     optional: true
@@ -3387,8 +3372,10 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
-  '@libsql/isomorphic-fetch@0.3.1': {}
+  '@libsql/isomorphic-fetch@0.3.1':
+    optional: true
 
   '@libsql/isomorphic-ws@0.1.5':
     dependencies:
@@ -3397,6 +3384,7 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
   '@libsql/linux-arm-gnueabihf@0.5.22':
     optional: true
@@ -3436,7 +3424,10 @@ snapshots:
       - encoding
       - supports-color
 
-  '@neon-rs/load@0.0.4': {}
+  '@neon-rs/load@0.0.4':
+    optional: true
+
+  '@neondatabase/serverless@1.1.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -3816,6 +3807,7 @@ snapshots:
   '@types/ws@8.18.1':
     dependencies:
       '@types/node': 22.19.1
+    optional: true
 
   '@typescript-eslint/eslint-plugin@8.46.4(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
@@ -4082,7 +4074,8 @@ snapshots:
       '@csstools/css-syntax-patches-for-csstree': 1.0.16
       css-tree: 3.1.0
 
-  data-uri-to-buffer@4.0.1: {}
+  data-uri-to-buffer@4.0.1:
+    optional: true
 
   data-urls@6.0.0:
     dependencies:
@@ -4107,7 +4100,8 @@ snapshots:
 
   dequal@2.0.3: {}
 
-  detect-libc@2.0.2: {}
+  detect-libc@2.0.2:
+    optional: true
 
   detect-libc@2.1.2: {}
 
@@ -4126,9 +4120,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.44.7(@libsql/client@0.15.15)(postgres@3.4.7):
+  drizzle-orm@0.44.7(@libsql/client@0.15.15)(@neondatabase/serverless@1.1.0)(postgres@3.4.7):
     optionalDependencies:
       '@libsql/client': 0.15.15
+      '@neondatabase/serverless': 1.1.0
       postgres: 3.4.7
 
   eastasianwidth@0.2.0: {}
@@ -4339,6 +4334,7 @@ snapshots:
     dependencies:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.3.3
+    optional: true
 
   file-entry-cache@8.0.0:
     dependencies:
@@ -4370,6 +4366,7 @@ snapshots:
   formdata-polyfill@4.0.10:
     dependencies:
       fetch-blob: 3.2.0
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -4484,7 +4481,8 @@ snapshots:
 
   jiti@2.6.1: {}
 
-  js-base64@3.7.8: {}
+  js-base64@3.7.8:
+    optional: true
 
   js-tiktoken@1.0.21:
     dependencies:
@@ -4583,6 +4581,7 @@ snapshots:
       '@libsql/linux-x64-gnu': 0.5.22
       '@libsql/linux-x64-musl': 0.5.22
       '@libsql/win32-x64-msvc': 0.5.22
+    optional: true
 
   lightningcss-android-arm64@1.30.2:
     optional: true
@@ -5003,7 +5002,8 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  node-domexception@1.0.0: {}
+  node-domexception@1.0.0:
+    optional: true
 
   node-fetch@2.7.0:
     dependencies:
@@ -5014,6 +5014,7 @@ snapshots:
       data-uri-to-buffer: 4.0.1
       fetch-blob: 3.2.0
       formdata-polyfill: 4.0.10
+    optional: true
 
   node-gyp-build@4.8.4: {}
 
@@ -5139,7 +5140,8 @@ snapshots:
 
   prettier@3.6.2: {}
 
-  promise-limit@2.7.0: {}
+  promise-limit@2.7.0:
+    optional: true
 
   punycode@2.3.1: {}
 
@@ -5593,7 +5595,8 @@ snapshots:
     dependencies:
       xml-name-validator: 5.0.0
 
-  web-streams-polyfill@3.3.3: {}
+  web-streams-polyfill@3.3.3:
+    optional: true
 
   webidl-conversions@3.0.1: {}
 
