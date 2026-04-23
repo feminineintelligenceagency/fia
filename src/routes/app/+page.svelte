@@ -3,6 +3,7 @@
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { handleError } from '$lib/consts.js';
 	import { analyzeMovieScript, findMovieScripts } from '$lib/data.remote.js';
+	import ExplanationPanel from '$lib/components/ExplanationPanel.svelte';
 	import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import Shield from '@lucide/svelte/icons/shield';
@@ -23,7 +24,14 @@
 	let query = $state('titanic');
 	let options = $state<string[]>([]);
 
-	const suggestions = ['titanic', 'inception', 'the godfather', 'interstellar', 'fight club', 'parasite'];
+	const suggestions = [
+		'titanic',
+		'inception',
+		'the godfather',
+		'interstellar',
+		'fight club',
+		'parasite'
+	];
 
 	function togglePrivate() {
 		if ($privateMode) stopPrivateMode();
@@ -215,3 +223,5 @@
 		</div>
 	</div>
 </div>
+
+<ExplanationPanel />
