@@ -1,25 +1,38 @@
 <script lang="ts">
-	import { toggleMode } from 'mode-watcher';
+	import { onMount } from 'svelte';
 	import SunIcon from '@lucide/svelte/icons/sun';
 	import MoonIcon from '@lucide/svelte/icons/moon';
 
-	import { Button } from '$lib/components/ui/button/index.js';
+	let isDark = false;
+
+	function apply(dark: boolean) {
+		isDark = dark;
+		document.documentElement.classList.toggle('dark', dark);
+		localStorage.setItem('theme', dark ? 'dark' : 'light');
+	}
+
+	onMount(() => {
+		const saved = localStorage.getItem('theme');
+		if (saved === 'dark' || saved === 'light') apply(saved === 'dark');
+		else apply(window.matchMedia('(prefers-color-scheme: dark)').matches);
+	});
+
+	function toggle() {
+		apply(!isDark);
+	}
 </script>
 
-<Button
+<button
 	type="button"
-	variant="outline"
-	size="icon"
-	onclick={toggleMode}
-	class="relative rounded-full border border-slate-200 bg-white/70 backdrop-blur shadow-sm
-	       hover:bg-slate-50
-	       dark:border-slate-700 dark:bg-slate-900/60 dark:hover:bg-slate-900"
+	on:click={toggle}
+	aria-label="Toggle theme"
+	class="relative inline-flex h-10 w-10 items-center justify-center rounded-full
+	       border border-slate-700/40 bg-slate-950/30 text-slate-100
+	       backdrop-blur shadow-sm hover:bg-slate-900/40"
 >
-	<!-- Light mode -->
-	<SunIcon class="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+	<!-- Light mode icon -->
+	<SunIcon class="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
 
-	<!-- Dark mode -->
-	<MoonIcon class="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-
-	<span class="sr-only">Toggle theme</span>
-</Button>
+	<!-- Dark mode icon -->
+	<MoonIcon class="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+</button>

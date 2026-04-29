@@ -1,12 +1,21 @@
-import { command, getRequestEvent } from '$app/server';
+import { dev } from '$app/environment';
+import { command, form, getRequestEvent } from '$app/server';
 import { fromAbsolute } from '@internationalized/date';
 import { ChatOpenAI } from '@langchain/openai';
 import { error } from '@sveltejs/kit';
 import { type } from 'arktype';
+import { asc, eq } from 'drizzle-orm';
 import { JSDOM } from 'jsdom';
 import { createAgent } from 'langchain';
-import { API_KEY_COOKIE, getTimestampInSeconds } from './consts';
-import { mainAgentPrompt, postAnalystSubagentPrompt } from './server/prompts';
+import { API_KEY_COOKIE, getTimestampInSeconds, sleep } from './consts';
+import { db } from './server/db';
+import { chatMessagesTable, chatsTable } from './server/db/schema';
+import {
+	chatSystemPrompt,
+	mainAgentPrompt,
+	postAnalystSubagentPrompt,
+	scenarioAnalyzerPrompt
+} from './server/prompts';
 import {
 	callPostAnalystSubagent,
 	getAllPlayerTypologies,
@@ -133,4 +142,131 @@ export const setApiKey = command(type('string > 0'), async (key) => {
 		maxAge,
 		expires: date
 	});
+});
+
+export const createChat = command(async () => {
+	const title = `Chat from ${new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`;
+
+	const [chat] = await db
+		.insert(chatsTable)
+		.values({ id: crypto.randomUUID(), title })
+		.returning({ id: chatsTable.id });
+
+	return chat.id;
+});
+
+export const sendChatMessage = command(
+	type({ chat_id: 'string.uuid.v4', content: 'string > 0' }),
+	async ({ chat_id, content }) => {
+		const { cookies } = getRequestEvent();
+
+		const apiKey = cookies.get(API_KEY_COOKIE);
+
+		if (!apiKey) {
+			error(500, 'No api key set');
+		}
+
+		const existing = await db
+			.select({ role: chatMessagesTable.role, content: chatMessagesTable.content })
+			.from(chatMessagesTable)
+			.where(eq(chatMessagesTable.chat_id, chat_id))
+			.orderBy(asc(chatMessagesTable.when_created));
+
+		await db.insert(chatMessagesTable).values({ chat_id, role: 'user', content });
+
+		const llm = new ChatOpenAI({
+			model: 'gpt-5-nano',
+			maxRetries: 2,
+			apiKey
+		});
+
+		const agent = createAgent({
+			model: llm,
+			tools: [getAllPlayerTypologies, getPlayerTypologyInformationByName],
+			systemPrompt: chatSystemPrompt
+		});
+
+		const response = await agent.invoke({
+			messages: [...existing, { role: 'user', content }]
+		});
+
+		const assistantContent = response.messages.at(-1)?.content.toString();
+
+		await db
+			.insert(chatMessagesTable)
+			.values({ chat_id, role: 'assistant', content: assistantContent || '' });
+
+		return assistantContent || '';
+	}
+);
+
+export const analyzeUploadedScript = form(type({ file: 'File' }), async ({ file }) => {
+	const { cookies } = getRequestEvent();
+
+	const apiKey = cookies.get(API_KEY_COOKIE);
+
+	if (!apiKey) {
+		error(500, 'No api key set');
+	}
+
+	const llm = new ChatOpenAI({
+		model: 'gpt-5-nano',
+		maxRetries: 2,
+		apiKey
+	});
+
+	const postAnalystSubagent = createAgent({
+		model: llm,
+		tools: [savePostToDB, getAllPlayerTypologies, getPlayerTypologyInformationByName],
+		systemPrompt: postAnalystSubagentPrompt
+	});
+
+	const agent = createAgent({
+		model: llm,
+		tools: [callPostAnalystSubagent(postAnalystSubagent)],
+		systemPrompt: mainAgentPrompt
+	});
+
+	const text = await file.text();
+
+	const chunks = chunkText(text).slice(0, 10);
+
+	for (const chunk of chunks) {
+		await sleep(200);
+		agent.invoke({
+			messages: [{ role: 'human', content: chunk }]
+		});
+	}
+
+	return 'done';
+});
+
+export const analyzeScenario = command(type({ scenario: 'string > 0' }), async ({ scenario }) => {
+	const { cookies } = getRequestEvent();
+
+	const apiKey = cookies.get(API_KEY_COOKIE);
+
+	if (!apiKey) {
+		error(500, 'No api key set');
+	}
+
+	const llm = new ChatOpenAI({
+		model: 'gpt-5-nano',
+		maxRetries: 2,
+		apiKey
+	});
+
+	const agent = createAgent({
+		model: llm,
+		tools: [getAllPlayerTypologies, getPlayerTypologyInformationByName],
+		systemPrompt: dev
+			? scenarioAnalyzerPrompt + '\n keep it really really short'
+			: scenarioAnalyzerPrompt
+	});
+
+	const { messages } = await agent.invoke({
+		messages: [{ role: 'human', content: scenario }]
+	});
+
+	return messages.at(-1)?.content.toString() || '';
 });
