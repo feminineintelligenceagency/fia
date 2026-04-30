@@ -26,12 +26,8 @@
 
 <div class="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 p-6">
 	<div class="flex items-center justify-between">
-		<h1 class="text-2xl font-bold text-slate-900">Chats</h1>
-		<Button
-			onclick={handleNewChat}
-			disabled={btnDisabled}
-			class="gap-2 rounded-xl bg-pink-500 hover:bg-pink-500/90"
-		>
+		<h1 class="text-2xl font-bold">Chats</h1>
+		<Button onclick={handleNewChat} disabled={btnDisabled} class="gap-2 rounded-xl">
 			<PlusIcon class="size-4" />
 			New Chat
 		</Button>
@@ -43,12 +39,7 @@
 		>
 			<MessageCircleMoreIcon class="size-10 text-slate-300" />
 			<p class="text-sm text-slate-500">No chats yet. Start a new one.</p>
-			<Button
-				onclick={handleNewChat}
-				disabled={btnDisabled}
-				size="sm"
-				class="rounded-xl bg-pink-500 hover:bg-pink-500/90"
-			>
+			<Button onclick={handleNewChat} disabled={btnDisabled} size="sm">
 				<PlusIcon class="size-4" />
 				New Chat
 			</Button>
@@ -57,7 +48,7 @@
 		<div class="flex flex-col gap-2">
 			{#each data.chats as chat (chat.id)}
 				<a
-					href="/app/chats/{chat.id}"
+					href={resolve('/app/chats/[chat_id]', { chat_id: chat.id })}
 					class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.995]"
 				>
 					<div

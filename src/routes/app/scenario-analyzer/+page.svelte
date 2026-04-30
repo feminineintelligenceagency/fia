@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { dev } from '$app/environment';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { handleError } from '$lib/consts';
 	import { analyzeScenario } from '$lib/data.remote';
 	import Markdown from 'svelte-exmarkdown';
 
-	let scenario = $state('my girlfriend abuses me and lies to me');
+	let scenario = $state(dev ? 'my boyfriend abuses me and lies to me' : '');
 
 	let btnDisabled = $state(false);
 
@@ -14,7 +15,7 @@
 
 <div class="flex h-full flex-col">
 	<div class="flex-1 overflow-y-auto p-6">
-		<article class="mx-auto prose max-w-5xl">
+		<article class="mx-auto prose max-w-5xl dark:prose-invert">
 			{#if analysis}
 				<Markdown md={analysis} />
 			{:else if btnDisabled}
@@ -25,7 +26,7 @@
 		</article>
 	</div>
 
-	<div class="sticky bottom-0 border-t bg-white/80 p-4 backdrop-blur-md">
+	<div class="sticky bottom-0 rounded-lg border bg-background/80 p-4 backdrop-blur-md">
 		<div class="flex gap-2">
 			<Textarea
 				bind:value={scenario}
@@ -45,7 +46,7 @@
 						btnDisabled = false;
 					}
 				}}
-				class="mt-auto bg-pink-500 hover:bg-pink-500/90"
+				class="mt-auto"
 				size="sm"
 				disabled={btnDisabled || scenario.trim().length === 0}>Ask</Button
 			>

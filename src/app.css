@@ -124,7 +124,7 @@ html,
 body {
 	@apply h-full w-full overflow-hidden;
 }
+
 html.dark body {
-  background: #0b1220;
-  color: #e5e7eb;
+	background: #0b1220;
 }
