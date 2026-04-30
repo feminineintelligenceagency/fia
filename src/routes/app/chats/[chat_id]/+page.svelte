@@ -75,13 +75,11 @@
 </script>
 
 <div class="flex h-full flex-col">
-	<div
-		class="flex items-center gap-3 border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur"
-	>
+	<div class="flex items-center gap-3 border-b px-4 py-3 backdrop-blur">
 		<Button href="/app/chats" variant="ghost" size="icon" class="rounded-xl">
 			<ArrowLeftIcon class="size-4" />
 		</Button>
-		<h1 class="truncate text-sm font-semibold text-slate-900">{data.chat.title}</h1>
+		<h1 class="truncate text-sm font-semibold">{data.chat.title}</h1>
 	</div>
 
 	<div class="flex-1 overflow-y-auto">
@@ -100,7 +98,7 @@
 		</ChatMessageList>
 	</div>
 
-	<div class="sticky bottom-0 border-t border-slate-200 bg-white/80 p-4 backdrop-blur-md">
+	<div class="sticky bottom-0 rounded-lg border bg-background/80 p-4 backdrop-blur-md">
 		<div class="flex gap-2">
 			<ChatInput
 				bind:value={content}
@@ -113,7 +111,7 @@
 				onclick={send}
 				disabled={sending || content.trim().length === 0}
 				size="icon"
-				class="mt-auto rounded-xl bg-pink-500 hover:bg-pink-500/90"
+				class="mt-auto rounded-xl"
 			>
 				<ArrowUpIcon class="size-4" />
 			</Button>

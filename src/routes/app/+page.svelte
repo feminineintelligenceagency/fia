@@ -1,24 +1,12 @@
 <script lang="ts">
+	import ExplanationPanel from '$lib/components/ExplanationPanel.svelte';
 	import * as InputGroup from '$lib/components/ui/input-group/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { handleError } from '$lib/consts.js';
 	import { analyzeMovieScript, findMovieScripts } from '$lib/data.remote.js';
-	import ExplanationPanel from '$lib/components/ExplanationPanel.svelte';
 	import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 	import PlusIcon from '@lucide/svelte/icons/plus';
-	import Shield from '@lucide/svelte/icons/shield';
-	import ShieldOff from '@lucide/svelte/icons/shield-off';
 	import { toast } from 'svelte-sonner';
-
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-
-	import {
-		privateMode,
-		startPrivateMode,
-		stopPrivateMode,
-		addSessionResult
-	} from '$lib/stores/privatemode';
 
 	let btnDisabled = $state(false);
 	let query = $state('titanic');
@@ -34,20 +22,6 @@
 		'fight club',
 		'parasite'
 	];
-
-	function togglePrivate() {
-		if ($privateMode) stopPrivateMode();
-		else startPrivateMode();
-	}
-
-	function getPrivateToggleClasses() {
-		return (
-			'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition ' +
-			($privateMode
-				? 'border-pink-300/60 bg-pink-500/10 text-pink-600 hover:bg-pink-500/15'
-				: 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50')
-		);
-	}
 
 	async function localFindMovieScripts() {
 		btnDisabled = true;
@@ -66,21 +40,8 @@
 		try {
 			const result = await analyzeMovieScript({ scriptUrl });
 
-			if ($privateMode) {
-				addSessionResult({
-					id: crypto.randomUUID?.() ?? String(Date.now()),
-					title: query || 'Untitled',
-					source: scriptUrl,
-					createdAt: Date.now(),
-					result
-				});
-
-				toast.success('Private analysis complete');
-				await goto(resolve('/app/session'));
-			} else {
-				console.log(result);
-				toast.success('Analysis complete');
-			}
+			console.log(result);
+			toast.success('Analysis complete');
 		} catch (err) {
 			handleError(err);
 		}
@@ -106,18 +67,6 @@
 						Digital Think Tank
 					</span>
 					<span class="text-xs text-slate-500">Script Search + Analysis</span>
-				</div>
-
-				<div class="flex items-center gap-2">
-					<button type="button" onclick={togglePrivate} class={getPrivateToggleClasses()}>
-						{#if $privateMode}
-							<Shield class="h-4 w-4" />
-							Private Mode ON
-						{:else}
-							<ShieldOff class="h-4 w-4" />
-							Private Mode OFF
-						{/if}
-					</button>
 				</div>
 			</div>
 

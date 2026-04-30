@@ -22,6 +22,7 @@ import {
 	getPlayerTypologyInformationByName,
 	savePostToDB
 } from './server/tools';
+import { AI_MODEL } from '$env/static/private';
 
 export const findMovieScripts = command(type({ query: 'string > 0' }), async ({ query }) => {
 	const fd = new FormData();
@@ -79,7 +80,7 @@ export const analyzeMovieScript = command(
 		}
 
 		const llm = new ChatOpenAI({
-			model: 'gpt-5-nano',
+			model: AI_MODEL,
 			maxRetries: 2,
 			apiKey
 		});
@@ -175,7 +176,7 @@ export const sendChatMessage = command(
 		await db.insert(chatMessagesTable).values({ chat_id, role: 'user', content });
 
 		const llm = new ChatOpenAI({
-			model: 'gpt-5-nano',
+			model: AI_MODEL,
 			maxRetries: 2,
 			apiKey
 		});
@@ -210,7 +211,7 @@ export const analyzeUploadedScript = form(type({ file: 'File' }), async ({ file 
 	}
 
 	const llm = new ChatOpenAI({
-		model: 'gpt-5-nano',
+		model: AI_MODEL,
 		maxRetries: 2,
 		apiKey
 	});
@@ -251,7 +252,7 @@ export const analyzeScenario = command(type({ scenario: 'string > 0' }), async (
 	}
 
 	const llm = new ChatOpenAI({
-		model: 'gpt-5-nano',
+		model: AI_MODEL,
 		maxRetries: 2,
 		apiKey
 	});
