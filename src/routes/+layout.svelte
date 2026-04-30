@@ -7,7 +7,7 @@
 </script>
 
 <!-- Global toggle (shows on every page) -->
-<div class="fixed top-4 right-4 z-50">
+<div class="fixed top-4 right-4 z-[9999] pointer-events-auto">
 	<ModeToggle />
 </div>
 
