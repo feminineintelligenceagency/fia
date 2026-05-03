@@ -2,7 +2,22 @@
 
 ### 1. Install Git
 
-*(Coming soon)*
+**Mac**
+
+1. Open Terminal
+2. Paste the following and press **Enter**:
+
+```
+xcode-select --install
+```
+
+3. Follow the on-screen prompts to install
+
+**Windows**
+
+1. Go to https://git-scm.com/install/windows
+2. Download and run the installer
+3. Follow the on-screen prompts
 
 ### 2. Install Node.js
 
